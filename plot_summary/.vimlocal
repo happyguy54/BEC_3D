@@ -1,0 +1,11 @@
+" Local settings
+" Requires 'silent! so .vimlocal' in main .vimrc file
+
+" ALE C++ Options
+let g:ale_cpp_clang_options = '`root-config --cflags` -Wall
+\                              -I${YAMLCPP__HOME}/include'
+let g:ale_cpp_gcc_options = '`root-config --cflags` -Wall
+\                            -I${YAMLCPP__HOME}/include'
+
+" let g:ale_linters = {'cpp': ['gcc'],
+" \                   }
