@@ -297,6 +297,40 @@ int main(int argc, char** argv) {
 
   if (help) {
     cout << "INFO: Usage: " << endl;
+    cout << "      ./fit -[hvto] --[c2-index q-min q-max rej-from rej-to rej2-from rej2-to alpha-out alpha-side alpha-long use-eps show-c0 fix-c0 enlarge-uncert fit-params plot-title plot-name y-min y-max proj-min proj-max num-samples comment] --file-data FILE_DATA --file2-data FILE2_DATA --file-mc FILE_MC --file2-mc FILE2_MC --hist-data HIST_DATA --hist2-data HIST2_DATA --hist-mc HIST_MC --hist2-mc HIST2_MC" << endl;
+    cout << "             -h                          show help" << endl;
+    cout << "             -v                          verbose output" << endl;
+    cout << "             --file-data FILE_DATA       input data file" << endl;
+    cout << "             --file2-data FILE2_DATA     second input data file" << endl;
+    cout << "             --file-mc FILE_MC           input MC file" << endl;
+    cout << "             --file2-mc FILE2_MC         second input MC file" << endl;
+    cout << "             --hist-data HIST_DATA       input data histogram name" << endl;
+    cout << "             --hist2-data HIST2_DATA     second input data histogram name" << endl;
+    cout << "             --hist-mc HIST_MC           input MC histogram name" << endl;
+    cout << "             --hist2-mc HIST2_MC         second input MC histogram name" << endl;
+    cout << "             --c2-index INDEX            C2 index to fit (default: 1)" << endl;
+    cout << "             --q-min VALUE               minimum q value (default: -1, no limit)" << endl;
+    cout << "             --q-max VALUE               maximum q value (default: -1, no limit)" << endl;
+    cout << "             --rej-from VALUE            rejection from value (default: 1.0)" << endl;
+    cout << "             --rej-to VALUE              rejection to value (default: -1.0)" << endl;
+    cout << "             --rej2-from VALUE           second rejection from value (default: 1.0)" << endl;
+    cout << "             --rej2-to VALUE             second rejection to value (default: -1.0)" << endl;
+    cout << "             --alpha-out VALUE           alpha out value (default: -1.0)" << endl;
+    cout << "             --alpha-side VALUE          alpha side value (default: -1.0)" << endl;
+    cout << "             --alpha-long VALUE          alpha long value (default: -1.0)" << endl;
+    cout << "             --use-eps                   use epsilon in fit (default: false)" << endl;
+    cout << "             --show-c0                   show C0 in fit (default: false)" << endl;
+    cout << "             --fix-c0                    fix C0 in fit (default: false)" << endl;
+    cout << "             --enlarge-uncert            enlarge uncertainties in fit (default: false)" << endl;
+    cout << "             --fit-params PARAMS         fit parameters to use (default: RE)" << endl;
+    cout << "             --plot-title TITLE          title for the plot (default: FIT 3D)" << endl;
+    cout << "             --plot-name NAME            name for the plot (default: bec_3d_fit)" << endl;
+    cout << "             --y-min VALUE               y-axis minimum (default: 0.8)" << endl;
+    cout << "             --y-max VALUE               y-axis maximum (default: 1.3)" << endl;
+    cout << "             --proj-min VALUE            projection minimum (default: 1)" << endl;
+    cout << "             --proj-max VALUE            projection maximum (default: 12)" << endl;
+    cout << "             --num-samples VALUE         number of samples for projection (default: 50)" << endl;
+    cout << "             --comment COMMENT           comment for the fit (default: empty)" << endl;
   }
 
   //define range of bindata object, min and max defined with qMin and qMax
