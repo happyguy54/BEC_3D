@@ -12,67 +12,8 @@ import sys
 from datetime import datetime
 from utils import remove_output_file, erase_line_in_table_file
 from utils import add_histogram
-from utils import add_latex_table_line, add_csv_table_line
+from utils import add_latex_table_line, add_csv_table_line, add_csv_table_line_averages
 import yaml
-
-# def get_filepath(plotname, extension):
-  # """ Determine full path to the output file. """
-    # day = datetime.now().day
-    # day_str = str(day)
-    # if day < 10:
-        # day_str = '0' + day_str
-    # filepath = 'output/%s_%s_%s' % (datetime.now().year,
-                                    # datetime.now().strftime('%h'),
-                                    # day_str)
-    # system('mkdir -p ' + filepath)
-    # filepath = filepath + '/' + extension + '/' + plotname + '.' + extension
-
-    # return filepath
-
-# def make_filepath(filename, extension):
-    # filepath = 'output/' + extension
-    # filepath += '/%s_%s_%s' % (datetime.now().year,
-                               # datetime.now().strftime('%h'),
-                               # datetime.now().day)
-    # system('mkdir -p ' + filepath)
-    # filepath = filepath + '/' + filename + '.' + extension
-
-    # return filepath
-
-# def add_latex_table_line(tablename, plotname, line_prefix, erase=True):
-    # """ Add line to the tex table. """
-    # tablefile = get_filepath(tablename, 'tex')
-    # linefile = get_filepath(plotname, 'tex')
-
-    # in_file = open(linefile, 'r')
-    # line = in_file.read()
-    # in_file.close()
-    # if erase:
-        # system('rm -f ' + linefile)
-
-    # out_file = open(tablefile, 'a+')
-    # out_file.write(line_prefix + line)
-    # out_file.close()
-
-# def add_csv_table_line(tablename, plotname, line_prefix, erase=True):
-    # """ Add line to the csv table. """
-    # tablefile = get_filepath(tablename, 'csv')
-    # linefile = get_filepath(plotname, 'csv')
-
-    # in_file = open(linefile, 'r')
-    # lines = in_file.readlines()
-    # in_file.close()
-    # if erase:
-        # system('rm -f ' + linefile)
-
-    # if not path.isfile(tablefile):
-        # out_file = open(tablefile, 'w')
-        # out_file.write('bin_start,bin_stop,' + lines[0])
-        # out_file.close()
-
-    # out_file = open(tablefile, 'a+')
-    # out_file.write(line_prefix + lines[1])
-    # out_file.close()
 
 def main():
     """ Main fitting script. """
@@ -94,12 +35,18 @@ def main():
     parser.add_argument('-k', '--kt', action='store_true',
                         default=False,
                         help='fit all kts')
+    parser.add_argument('--tt', action='store_true',
+                        default=False,
+                        help='fit all tts')
     parser.add_argument('--mult-index',
                         type=int, default=0,
                         help='Multiplicity index')
     parser.add_argument('--kt-index',
                         type=int, default=0,
                         help='kT index')
+    parser.add_argument('--tt-index',
+                        type=int, default=0,
+                        help='tt index')
     parser.add_argument('-t', '--test', action='store_true',
                         default=False,
                         help='test fit')
@@ -148,6 +95,15 @@ def main():
     parser.add_argument('--unc2-factor',
                         type=int, default=-1.,
                         help='2nd uncertainty in Q enlarged by')
+    parser.add_argument('--q-min',
+                        type=float, default=-1,
+                        help='Q min')
+    parser.add_argument('--q-max',
+                        type=float, default=-1,
+                        help='Q max')
+    parser.add_argument('--rej-fin', action='store_true',
+                        default=False,
+                        help='Use final rejection')
     parser.add_argument('--rej-from',
                         type=float, default=1.,
                         help='Excluded from Q')
@@ -184,6 +140,87 @@ def main():
     parser.add_argument('--rej-to-long',
                         type=float, default=-1.,
                         help='Excluded from Q')
+    parser.add_argument('--rej2-from-out',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej2-to-out',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej2-from-side',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej2-to-side',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej2-from-long',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej2-to-long',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej3-from-out',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej3-to-out',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej3-from-side',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej3-to-side',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej3-from-long',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej3-to-long',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej4-from-out',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej4-to-out',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej4-from-side',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej4-to-side',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej4-from-long',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej4-to-long',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej5-from-out',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej5-to-out',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej5-from-side',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej5-to-side',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej5-from-long',
+                        type=float, default=1.,
+                        help='Excluded from Q')
+    parser.add_argument('--rej5-to-long',
+                        type=float, default=-1.,
+                        help='Excluded from Q')
+    parser.add_argument('--alpha-out',
+                        type=float, default=-1.,
+                        help='alpha out')
+    parser.add_argument('--alpha-side',
+                        type=float, default=-1.,
+                        help='alpha side')
+    parser.add_argument('--alpha-long',
+                        type=float, default=-1.,
+                        help='alpha long')
     parser.add_argument('--non-closure', action='store_true',
                         default=False,
                         help='Do non-closure correction')
@@ -196,6 +233,7 @@ def main():
 
     args = parser.parse_args()
 
+    rej_fin = args.rej_fin
     uls = args.uls
     ohp = args.ohp
     mix = args.mix
@@ -215,7 +253,13 @@ def main():
 
     args.mult_index = args.mult_index - 1
     args.kt_index = args.kt_index - 1
+    args.tt_index = args.tt_index - 1
+    ttsplit = ''
+    ttname = ''
     if args.mult_index >= 0 and args.kt_index >= 0:
+        parser.print_help()
+        sys.exit(1)
+    if args.tt_index >= 0 and (args.kt_index >= 0 or args.mult_index >= 0):
         parser.print_help()
         sys.exit(1)
 
@@ -230,7 +274,7 @@ def main():
     if not args.style_8tev and not args.style_13tev and not args.style_dubna:
         args.style_13tev = True
 
-    system('make')
+    # system('make')
 
     try:
         with open(input_yaml_path, 'r') as stream:
@@ -247,7 +291,10 @@ def main():
     # except json.decoder.JSONDecodeError:
         # print('ERROR: Syntax error in input file list!')
         # sys.exit(1)
-
+    file_data = ''
+    file2_data = ''
+    file_mc = ''
+    file2_mc = ''
     # Settings
     if uls:
         try:
@@ -295,64 +342,191 @@ def main():
     if ohp:
         hist_prefix = ''
         hist2_prefix = ''
-        file_data = input_files['ohp']['file_data']
-        file2_data = input_files['ohp']['file2_data']
-        file_mc = input_files['ohp']['file_mc']
-        file2_mc = input_files['ohp']['file2_mc']
-        hist_suffix = 'Q_ppmm'
-        hist2_suffix = 'Q_ppmm'
+        try:
+            file_data = input_files['ohp']['file_data']
+        except KeyError:
+            pass
+        try:
+            file2_data = input_files['ohp']['file2_data']
+        except KeyError:
+            pass
+        try:
+            file_mc = input_files['ohp']['file_mc']
+        except KeyError:
+            pass
+        try:
+            file2_mc = input_files['ohp']['file2_mc']
+        except KeyError:
+            pass
+        # hist_suffix = 'Q_ppmm'
+        # hist2_suffix = 'Q_ppmm'
+        hist_suffix = 'Qosl_ppmm'
+        hist2_suffix = 'Qosl_ppmm'
         hist_truth_suffix = 'truth_Q_ppmm'
         hist2_truth_suffix = 'truth_Q_ppmm'
         plotname_prefix = 'bec_fit_ohp'
+        if args.style_13tev:
+            plotname_prefix += '_13tev'
         comment_prefix = 'OHP, variable binning;'
     if mix:
         hist_prefix = ''
         hist2_prefix = ''
-        file_data = input_files['mix']['file_data']
-        file2_data = input_files['mix']['file2_data']
-        file_mc = input_files['mix']['file_mc']
-        file2_mc = input_files['mix']['file2_mc']
-        hist_suffix = 'Q_ppmm'
-        hist2_suffix = 'Q_ppmm'
+        try:
+            file_data = input_files['mix']['file_data']
+        except KeyError:
+            pass
+        try:
+            file2_data = input_files['mix']['file2_data']
+        except KeyError:
+            pass
+        try:
+            file_mc = input_files['mix']['file_mc']
+        except KeyError:
+            pass
+        try:
+            file2_mc = input_files['mix']['file2_mc']
+        except KeyError:
+            pass
+        hist_suffix = 'Qosl_ppmm'
+        hist2_suffix = 'Qosl_ppmm'
         hist_truth_suffix = 'truth_Q_ppmm'
         hist2_truth_suffix = 'truth_Q_ppmm'
         plotname_prefix = 'bec_fit_mix'
+        if args.style_13tev:
+            plotname_prefix += '_13tev'
         comment_prefix = 'MIX, variable binning;'
     title = ''
+    # Extract mixings from file name
+    mixings = ''
+    if mix:
+        try:
+            if 'MIX_' in file2_data:
+                mixings = file2_data.split('MIX_')[1].split('_coulomb')[0]
+        except NameError:
+            pass
+        try:
+            if 'MIX_' in file2_mc:
+                mixings = file2_mc.split('MIX_')[1].split('_coulomb')[0]
+        except NameError:
+            pass
+        # Check if file2_data or file2_mc is not empty
+    if not mix:
+        try:
+            if file2_data:
+                if 'mix_thrust' in file2_data:
+                    mixings = 'mix_thrust'
+        except NameError:
+            pass
+        try:
+            if file_data:
+                if 'mix_thrust' in file_data:
+                    mixings = 'mix_thrust'
+        except NameError:
+            pass
+        try:
+            if file2_mc:
+                if 'mix_thrust' in file2_mc:
+                    mixings = 'mix_thrust'
+        except NameError:
+            pass 
+        try:
+            if file_mc:
+                if 'mix_thrust' in file_mc:
+                    mixings = 'mix_thrust'
+        except NameError:
+            pass
+    mix_thrust = False
+    if mixings.find('mix_thrust') >= 0:
+        mix_thrust = True
+    plotname_prefix += mixings
+    print('Mixings:', mixings)
     rej_from = args.rej_from
     rej_to = args.rej_to
     rej_from_Osl = [args.rej_from_out, args.rej_from_side, args.rej_from_long]
+    rej2_from_Osl = [args.rej2_from_out, args.rej2_from_side, args.rej2_from_long]
+    rej3_from_Osl = [args.rej3_from_out, args.rej3_from_side, args.rej3_from_long]
+    rej4_from_Osl = [args.rej4_from_out, args.rej4_from_side, args.rej4_from_long]
+    rej5_from_Osl = [args.rej5_from_out, args.rej5_from_side, args.rej5_from_long]
     rej_to_Osl = [args.rej_to_out, args.rej_to_side, args.rej_to_long]
+    rej2_to_Osl = [args.rej2_to_out, args.rej2_to_side, args.rej2_to_long]
+    rej3_to_Osl = [args.rej3_to_out, args.rej3_to_side, args.rej3_to_long]
+    rej4_to_Osl = [args.rej4_to_out, args.rej4_to_side, args.rej4_to_long]
+    rej5_to_Osl = [args.rej5_to_out, args.rej5_to_side, args.rej5_to_long]
     rej2_from = args.rej2_from
     rej2_to = args.rej2_to
     rej3_from = args.rej3_from
     rej3_to = args.rej3_to
+    alpha = [args.alpha_out, args.alpha_side, args.alpha_long]
     unc_from = args.unc_from
     unc_to = args.unc_to
     unc_factor = args.unc_factor
     unc2_from = args.unc2_from
     unc2_to = args.unc2_to
     unc2_factor = args.unc2_factor
-    q_min = 0.02 #skip first bin, -1 for min
-    q_max = -1
+    # q_min = 0.02 #skip first bin, -1 for min
+    # q_max = 1 # -1 for max (now 2.02)
+    q_min = args.q_min
+    q_max = args.q_max
     proj_min = 1
-    proj_max = 14 #10 for 200 MeV
+    proj_max = 30 #14 #10 for 200 MeV (14 for 280MeV, 22 for 600MeV)
     plotname_suffix = '_proj_%i_%i' % (proj_min, proj_max)
-    pt = file_data.split('trk_pt_')[1].split('_')[0]
+    pt = ""
+    if file_data:
+        pt = file_data.split('trk_pt_')[1].split('_')[0]
+    else:
+        pt = file_mc.split('trk_pt_')[1].split('_')[0]
+    if file2_data and file2_mc:
+        c2_type = "r2"
+    elif file2_data:
+        c2_type = "c2_data"
+    elif file2_mc:
+        c2_type = "c2_mc"
+    else:
+        print("ERROR: No file2 data or mc found!")
     plotname_prefix += '_pt_%s' % pt
     c2_index = args.c2_index
-    plotname_prefix = plotname_prefix + '_c2_%i' % c2_index
+    plotname_prefix = plotname_prefix + '_%s_%i' % (c2_type, c2_index)
+    if q_max > 0:
+        plotname_suffix += '_qMax_%i' % (q_max * 1000.)
     rej_names = ['out', 'side', 'long']
+    bin_start = 21
+    bin_stop = 151
 
 
     if rej_to > rej_from:
         plotname_suffix += '_rej_%i_%i' % (rej_from * 1000., rej_to * 1000.)
-    if all(a > b for a, b in zip(rej_to_Osl, rej_from_Osl)):
-        plotname_suffix += ''.join(['_rej_%s_%i_%i' % (rej_names[i], rej_from_Osl[i] * 1000., rej_to_Osl[i] * 1000.) for i in range(3)])
     if rej2_to > rej2_from:
         plotname_suffix += '_rej2_%i_%i' % (rej2_from * 1000., rej2_to * 1000.)
     if rej3_to > rej3_from:
         plotname_suffix += '_rej3_%i_%i' % (rej3_from * 1000., rej3_to * 1000.)
+    rej_Osl_lists = [
+        (rej_from_Osl, rej_to_Osl, 'rej'),
+        (rej2_from_Osl, rej2_to_Osl, 'rej2'),
+        (rej3_from_Osl, rej3_to_Osl, 'rej3'),
+        (rej4_from_Osl, rej4_to_Osl, 'rej4'),
+        (rej5_from_Osl, rej5_to_Osl, 'rej5'),
+
+    ]
+    # for rej_from_temp, rej_to_temp, prefix in rej_Osl_lists:
+    #     if all(a > b for a, b in zip(rej_to_temp, rej_from_temp)):
+    #         plotname_suffix += ''.join(['_%s_%s_%i_%i' % (prefix, rej_names[i],
+    #                             rej_from_temp[i] * 1000., rej_to_temp[i] * 1000.) 
+    #                             for i in range(len(rej_names))])
+    # Initialize a dictionary to store concatenated rejection regions
+    rej_regions = {"out": [], "side": [], "long": []}
+
+    # Concatenate rejection regions by type
+    for (rej_from_osl, rej_to_osl, _) in rej_Osl_lists:
+        if all(a > b for a, b in zip(rej_to_osl, rej_from_osl)):
+            for key, idx in zip(rej_regions.keys(), range(3)):
+                rej_regions[key].extend([int(rej_from_osl[idx] * 1000), int(rej_to_osl[idx] * 1000)])
+
+    # Update plotname_suffix with concatenated rejection regions
+    plotname_suffix += "".join(
+        f"_rej_{key}_" + "_".join(f"{vals[i]}-{vals[i+1]}" for i in range(0, len(vals), 2))
+        for key, vals in rej_regions.items()
+    )
+
     if (unc_to > unc_from) and unc_factor >= 0.:
         plotname_suffix += '_unc_%i_%i_by_%i' % (unc_from * 1000.,
                                                  unc_to * 1000.,
@@ -368,10 +542,13 @@ def main():
                                                             unc2_to,
                                                             unc2_factor)
 
+    if rej_fin:
+        plotname_suffix += '_REJ'
+        comment_prefix += 'REJ;'
     mults = (2, 10), (11, 20), (21, 30), (31, 40), \
             (41, 50), (51, 60), (61, 70), (71, 80), \
             (81, 90), (91, 100), (101, 125), (126, 150), \
-            # (151, 200), (201, 250)
+            (151, 200), (201, 250), (21, 250)
     # mults = (2, 9), (10, 19), (20, 29), (30, 39), \
     #         (40, 49), (50, 59), (60, 69), (70, 79), \
     #         (80, 89), (90, 99), (100, 124), \
@@ -380,6 +557,8 @@ def main():
     kts = (100, 200), (200, 300), (300, 400), (400, 500), (500, 600), \
           (600, 700), (700, 1000), (1000, 1500), (1500, 2000)
 
+    tts = (0.63, 0.71), (0.71, 0.78), (0.78, 0.85), (0.85, 0.93), (0.93, 1.0)
+    
     if args.test:
         mults = ((51, 60), )
         # mults = ((50, 60), )
@@ -389,6 +568,9 @@ def main():
         sys.exit(1)
     if args.kt_index > len(kts):
         print("ERROR: kT index out of range!")
+        sys.exit(1)
+    if args.tt_index > len(tts):
+        print("ERROR: tt index out of range!")
         sys.exit(1)
     
     args_prefix = ''
@@ -401,31 +583,56 @@ def main():
     except NameError:
         pass
     try:
-        args_prefix += ' --file2-data ' + file2_data
+        args_prefix += ' --file2-data "' + file2_data +'"'
     except NameError:
         pass
     try:
-        args_prefix += ' --file2-mc ' + file2_mc
+        args_prefix += ' --file2-mc "' + file2_mc +'"'
     except NameError:
         pass
+
     args_prefix += ' --rej-from %f' % rej_from
     args_prefix += ' --rej-to %f' % rej_to
-    args_prefix += ' --rej-from-out %f' % rej_from_Osl[0]
-    args_prefix += ' --rej-to-out %f' % rej_to_Osl[0]
-    args_prefix += ' --rej-from-side %f' % rej_from_Osl[1]
-    args_prefix += ' --rej-to-side %f' % rej_to_Osl[1]
-    args_prefix += ' --rej-from-long %f' % rej_from_Osl[2]
-    args_prefix += ' --rej-to-long %f' % rej_to_Osl[2]
+    for i, (rej_from_temp, rej_to_temp, prefix) in enumerate(rej_Osl_lists):
+        args_prefix += ' --%s-from-out %f' % (prefix, rej_from_temp[0])
+        args_prefix += ' --%s-to-out %f' % (prefix, rej_to_temp[0])
+        args_prefix += ' --%s-from-side %f' % (prefix, rej_from_temp[1])
+        args_prefix += ' --%s-to-side %f' % (prefix, rej_to_temp[1])
+        args_prefix += ' --%s-from-long %f' % (prefix, rej_from_temp[2])
+        args_prefix += ' --%s-to-long %f' % (prefix, rej_to_temp[2])
+    # args_prefix += ' --rej-from-out %f' % rej_from_Osl[0]
+    # args_prefix += ' --rej-to-out %f' % rej_to_Osl[0]
+    # args_prefix += ' --rej-from-side %f' % rej_from_Osl[1]
+    # args_prefix += ' --rej-to-side %f' % rej_to_Osl[1]
+    # args_prefix += ' --rej-from-long %f' % rej_from_Osl[2]
+    # args_prefix += ' --rej-to-long %f' % rej_to_Osl[2]
+    # args_prefix += ' --rej2-from-out %f' % rej2_from_Osl[0]
+    # args_prefix += ' --rej2-to-out %f' % rej2_to_Osl[0]
+    # args_prefix += ' --rej2-from-side %f' % rej2_from_Osl[1]
+    # args_prefix += ' --rej2-to-side %f' % rej2_to_Osl[1]
+    # args_prefix += ' --rej2-from-long %f' % rej2_from_Osl[2]
+    # args_prefix += ' --rej2-to-long %f' % rej2_to_Osl[2]
+    # args_prefix += ' --rej3-from-out %f' % rej3_from_Osl[0]
+    # args_prefix += ' --rej3-to-out %f' % rej3_to_Osl[0]
+    # args_prefix += ' --rej3-from-side %f' % rej3_from_Osl[1]
+    # args_prefix += ' --rej3-to-side %f' % rej3_to_Osl[1]
+    # args_prefix += ' --rej3-from-long %f' % rej3_from_Osl[2]
+    # args_prefix += ' --rej3-to-long %f' % rej3_to_Osl[2]
     args_prefix += ' --rej2-from %f' % rej2_from
     args_prefix += ' --rej2-to %f' % rej2_to
     args_prefix += ' --rej3-from %f' % rej3_from
     args_prefix += ' --rej3-to %f' % rej3_to
+    args_prefix += ' --alpha-out %f' % alpha[0]
+    args_prefix += ' --alpha-side %f' % alpha[1]
+    args_prefix += ' --alpha-long %f' % alpha[2]
     args_prefix += ' --q-min %f' % q_min
     args_prefix += ' --q-max %f' % q_max
     args_prefix += ' --proj-min %d' % proj_min
     args_prefix += ' --proj-max %d' % proj_max
     args_prefix += ' --title "%s"' % title
     args_prefix += ' --c2-index %d' % c2_index
+    if rej_fin:
+        args_prefix += ' --rej-fin'
     if not args.dont_use_eps:
         args_prefix += " --use-eps"
     if args.fix_c0:
@@ -440,11 +647,11 @@ def main():
         args_prefix += ' --unc2-from %f' % unc2_from
         args_prefix += ' --unc2-to %f' % unc2_to
         args_prefix += ' --unc2-factor %d' % unc2_factor
-
+    c2_index = c2_type + "_" + str(c2_index)
     #
-    # All multiplicity, all kT
+    # All multiplicity, all kT, all tt
     #
-    if not args.mult and not args.kt:
+    if not args.mult and not args.kt and not args.tt:
         if args.mult_index >= 0:
             mult1, mult2 = mults[args.mult_index]
         else:
@@ -455,6 +662,20 @@ def main():
         else:
             kt1 = kts[0][0]
             kt2 = kts[-1][-1]
+        if mix_thrust:
+            if args.tt_index >= 0:
+                tt1, tt2 = tts[args.tt_index]
+                ttsplit = 'tt_%0.2f_%0.2f/' % (tt1, tt2)
+                if tt2 == 1.0:
+                    ttsplit = 'tt_%0.2f_%0.1f/' % (tt1, tt2)
+                ttname = '_tt_%0.2f_%0.2f' % (tt1, tt2)
+            else:
+                ttsplit = 'no_tt_split/'
+                tt1 = tts[0][0]
+                tt2 = tts[-1][-1]
+                ttname = '_tt_%0.2f_%0.2f' % (tt1, tt2)
+        if ttname != '':
+            ttname = ttname.replace('.', '_')
         if args.kt_index >= 0:
             tablename_mult = plotname_prefix + '_mult_kt_%i_%i' % (kt1, kt2) + \
                              plotname_suffix
@@ -466,38 +687,50 @@ def main():
                            plotname_suffix
         else:
             tablename_kt = plotname_prefix + '_kt' + plotname_suffix
+        if mix_thrust and args.tt_index >= 0:
+            tablename_tt = plotname_prefix + '_mult' + ttname + plotname_suffix
+        else:
+            tablename_tt = plotname_prefix + '_tt' + plotname_suffix
         erase_line_in_table_file(tablename_mult, 'tex',
                                  '%i--%i ' % (mult1, mult2), c2_index)
         erase_line_in_table_file(tablename_mult, 'csv',
                                  '%i,%i,' % (mult1, mult2), c2_index)
         erase_line_in_table_file(tablename_kt, 'tex', '%i--%i ' % (kt1, kt2), c2_index)
         erase_line_in_table_file(tablename_kt, 'csv', '%i,%i,' % (kt1, kt2), c2_index)
+        if mix_thrust:
+            erase_line_in_table_file(tablename_tt, 'tex', '%.2f--%.2f ' % (tt1, tt2), c2_index)
+            erase_line_in_table_file(tablename_tt, 'csv', '%.2f,%.2f,' % (tt1, tt2), c2_index)
         if args.style_8tev:
             hist_data = '_g_n_%i_%i' % (mult1, mult2)
             hist_mc = '_n_%i_%i' % (mult1, mult2)
         if args.style_13tev:
-            hist_data = 'no_multiplicity_split/no_kt_split/'
-            hist_mc = 'no_multiplicity_split/no_kt_split/'
+            hist_data = 'no_multiplicity_split/no_kt_split/%s' % ttsplit
+            hist_mc = 'no_multiplicity_split/no_kt_split/%s' % ttsplit
             if args.kt_index >= 0:
-                hist_data = 'no_multiplicity_split/kt_%i_%i/' % (kt1, kt2)
-                hist_mc = 'no_multiplicity_split/kt_%i_%i/' % (kt1, kt2)
+                hist_data = 'no_multiplicity_split/kt_%i_%i/%s' % (kt1, kt2, ttsplit)
+                hist_mc = 'no_multiplicity_split/kt_%i_%i/%s' % (kt1, kt2, ttsplit)
             if args.mult_index >= 0:
-                hist_data = 'multiplicity_%i_%i/no_kt_split/' % (mult1, mult2)
-                hist_mc = 'multiplicity_%i_%i/no_kt_split/' % (mult1, mult2)
+                hist_data = 'multiplicity_%i_%i/no_kt_split/%s' % (mult1, mult2, ttsplit)
+                hist_mc = 'multiplicity_%i_%i/no_kt_split/%s' % (mult1, mult2, ttsplit)
+            #for now we need hist2data to be without tt split
+            hist2_data = hist_data
+            hist2_mc = hist_mc
+            # hist_data = 'no_multiplicity_split/no_kt_split/'
+            # hist_mc = 'no_multiplicity_split/no_kt_split/'
         if args.style_dubna:
             hist_data = '_kT%i-%i_Q20_N%i-%i_G' % (kt1, kt2, mult1, mult2)
             hist_mc = '_kT%i-%i_Q20_N%i-%i' % (kt1, kt2, mult1, mult2)
         plotname = plotname_prefix + \
-                   '_mult_%i_%i_kt_%i_%i' % (mult1, mult2, kt1, kt2) + \
+                   '_mult_%i_%i_kt_%i_%i%s' % (mult1, mult2, kt1, kt2, ttname) + \
                    plotname_suffix
         comment = comment_prefix + '%i #leq n_{ch} #leq %i' % (mult1, mult2)
 
         # fit_command = 'gdbserver :1234 ./fit' + args_prefix + \
         fit_command = './fit' + args_prefix + \
             ' --hist-data ' + hist_prefix + hist_data + hist_suffix + \
-            ' --hist2-data ' + hist2_prefix + hist_data + hist2_suffix + \
+            ' --hist2-data ' + hist2_prefix + hist2_data + hist2_suffix + \
             ' --hist-mc ' + hist_prefix + hist_mc + hist_suffix + \
-            ' --hist2-mc ' + hist2_prefix + hist_mc + hist2_suffix
+            ' --hist2-mc ' + hist2_prefix + hist2_mc + hist2_suffix
         if args.non_closure:
             fit_command += ' --hist-truth ' + \
                            hist_prefix + hist_mc + hist_truth_suffix
@@ -519,8 +752,14 @@ def main():
                                '%i,%i,' % (mult1, mult2),
                                c2_index, args.kt_index >= 0)
         if args.kt_index < 0:
-            add_latex_table_line(tablename_kt, plotname, '%i--%i ' % (kt1, kt2), c2_index)
-            add_csv_table_line(tablename_kt, plotname, '%i,%i,' % (kt1, kt2), c2_index)
+            add_latex_table_line(tablename_kt, plotname, '%i--%i ' % (kt1, kt2), c2_index, args.tt_index >= 0)
+            add_csv_table_line(tablename_kt, plotname, '%i,%i,' % (kt1, kt2), c2_index, args.tt_index >= 0)
+
+        if mix_thrust and args.tt_index < 0:
+            add_latex_table_line(tablename_tt, plotname, '%.2f--%.2f ' % (tt1, tt2), c2_index)
+            add_csv_table_line(tablename_tt, plotname, '%.2f,%.2f,' % (tt1, tt2), c2_index)
+
+        add_csv_table_line_averages(tablename_mult, bin_start, bin_stop, c2_index)
 
 
     if args.unf and args.style_13tev:
@@ -531,14 +770,26 @@ def main():
     #
     # Fit multiplicity bins
     #
-    if args.mult and not args.kt:
+    if args.mult and not args.kt and not args.tt:
         if args.kt_index >= 0:
             kt1, kt2 = kts[args.kt_index]
+        # only do, if mixings contains "mix_thrust"
+        if mix_thrust:
+            if args.tt_index >= 0:
+                tt1, tt2 = tts[args.tt_index]
+                ttsplit = 'tt_%0.2f_%0.2f/' % (tt1, tt2)
+                if tt2 == 1.0:
+                    ttsplit = 'tt_%0.2f_%0.1f/' % (tt1, tt2)
+                ttname = '_tt_%0.2f_%0.2f' % (tt1, tt2)
+            else:
+                ttsplit = 'no_tt_split/'
 
         colname = plotname_prefix + '_mult' + plotname_suffix
         if args.kt_index >= 0:
-            colname = plotname_prefix + '_mult_kt_%i_%i' % (kt1, kt2) + \
+            colname = plotname_prefix + '_mult_kt_%i_%i%s' % (kt1, kt2, ttname) + \
                       plotname_suffix
+        if args.tt_index >= 0:
+            colname = plotname_prefix + '_mult%s' % ttname + plotname_suffix
         remove_output_file(colname, 'tex', c2_index)
         remove_output_file(colname, 'csv', c2_index)
         remove_output_file(colname, 'root', c2_index)
@@ -548,13 +799,17 @@ def main():
                 hist_data = '_g_n_%i_%i' % (mult1, mult2)
                 hist_mc = '_n_%i_%i' % (mult1, mult2)
             if args.style_13tev:
-                hist_data = 'multiplicity_%i_%i/no_kt_split/' % (mult1, mult2)
-                hist_mc = 'multiplicity_%i_%i/no_kt_split/' % (mult1, mult2)
+                hist_data = 'multiplicity_%i_%i/no_kt_split/%s' % (mult1, mult2, ttsplit)
+                hist_mc = 'multiplicity_%i_%i/no_kt_split/%s' % (mult1, mult2, ttsplit)
                 if args.kt_index >= 0:
-                    hist_data = 'multiplicity_%i_%i/kt_%i_%i/' % (mult1, mult2,
-                                                                  kt1, kt2)
-                    hist_mc = 'multiplicity_%i_%i/kt_%i_%i/' % (mult1, mult2,
-                                                                kt1, kt2)
+                    hist_data = 'multiplicity_%i_%i/kt_%i_%i/%s' % (mult1, mult2,
+                                                                    kt1, kt2, ttsplit)
+                    hist_mc = 'multiplicity_%i_%i/kt_%i_%i/%s' % (mult1, mult2,
+                                                                  kt1, kt2, ttsplit)
+                hist2_data = hist_data
+                hist2_mc = hist_mc
+                # hist_data = 'multiplicity_%i_%i/no_kt_split/' % (mult1, mult2)
+                # hist_mc = 'multiplicity_%i_%i/no_kt_split/' % (mult1, mult2)
             if args.style_dubna:
                 hist_data = '_pT100_Q20_Nch%i-%i_G' % (mult1, mult2)
                 hist_mc = '_pT100_Q20_Nch%i-%i' % (mult1, mult2)
@@ -570,16 +825,20 @@ def main():
                        plotname_suffix
             if args.kt_index >= 0:
                 plotname = plotname_prefix + \
-                           '_mult_%i_%i_kt_%i_%i' % (mult1, mult2, kt1, kt2) + \
+                           '_mult_%i_%i_kt_%i_%i%s' % (mult1, mult2, kt1, kt2, ttname) + \
+                           plotname_suffix
+            if args.tt_index >= 0:
+                plotname = plotname_prefix + \
+                           '_mult_%i_%i%s' % (mult1, mult2, ttname) + \
                            plotname_suffix
             comment = comment_prefix + '%i #leq n_{ch} #leq %i' % (mult1, mult2)
 
             # fit_command = 'gdbserver :1234 ./fit' + args_prefix + \
             fit_command = './fit' + args_prefix + \
                 ' --hist-data ' + hist_prefix + hist_data + hist_suffix + \
-                ' --hist2-data ' + hist2_prefix + hist_data + hist2_suffix + \
+                ' --hist2-data ' + hist2_prefix + hist2_data + hist2_suffix + \
                 ' --hist-mc ' + hist_prefix + hist_mc + hist_suffix + \
-                ' --hist2-mc ' + hist2_prefix + hist_mc + hist2_suffix
+                ' --hist2-mc ' + hist2_prefix + hist2_mc + hist2_suffix
             if args.non_closure:
                 fit_command += ' --hist-truth ' + \
                                hist_prefix + hist_mc + hist_truth_suffix
@@ -594,6 +853,7 @@ def main():
                 sys.exit(1)
 
             add_latex_table_line(colname, plotname, '%i--%i ' % (mult1, mult2), c2_index)
+            print(colname, plotname, '%i--%i ' % (mult1, mult2), c2_index)
             add_csv_table_line(colname, plotname, '%i,%i,' % (mult1, mult2), c2_index)
             add_histogram(colname, plotname, c2_index)
 
@@ -601,14 +861,26 @@ def main():
     #
     # Fit kT bins
     #
-    if args.kt and not args.mult:
+    if args.kt and not args.mult and not args.tt:
         if args.mult_index >= 0:
             mult1, mult2 = mults[args.mult_index]
+        if mix_thrust:
+            if args.tt_index >= 0:
+                tt1, tt2 = tts[args.tt_index]
+                ttsplit = 'tt_%0.2f_%0.2f/' % (tt1, tt2)
+                if tt2 == 1.0:
+                    ttsplit = 'tt_%0.2f_%0.1f/' % (tt1, tt2)
+                ttname = '_tt_%0.2f_%0.2f' % (tt1, tt2)
+            else:
+                ttsplit = 'no_tt_split/'
 
         colname = plotname_prefix + '_kt' + plotname_suffix
         if args.mult_index >= 0:
-            colname = plotname_prefix + '_kt_mult_%i_%i' % (mult1, mult2) + \
-                        plotname_suffix
+            colname = plotname_prefix + '_kt_mult_%i_%i%s' % (mult1, mult2, ttname) + \
+                      plotname_suffix
+        elif args.tt_index >= 0:
+            colname = plotname_prefix + '_kt%s' % ttname + plotname_suffix
+
         remove_output_file(colname, 'tex', c2_index)
         remove_output_file(colname, 'csv', c2_index)
         remove_output_file(colname, 'root', c2_index)
@@ -618,13 +890,17 @@ def main():
                 hist_data = '_g_kt_%i_%i' % (kt1, kt2)
                 hist_mc = '_kt_%i_%i' % (kt1, kt2)
             if args.style_13tev:
-                hist_data = 'no_multiplicity_split/kt_%i_%i/' % (kt1, kt2)
-                hist_mc = 'no_multiplicity_split/kt_%i_%i/' % (kt1, kt2)
-                if args.kt_index >= 0:
-                    hist_data = 'multiplicity_%i_%i/kt_%i_%i/' % (mult1, mult2,
-                                                                  kt1, kt2)
-                    hist_mc = 'multiplicity_%i_%i/kt_%i_%i/' % (mult1, mult2,
-                                                                kt1, kt2)
+                hist_data = 'no_multiplicity_split/kt_%i_%i/%s' % (kt1, kt2, ttsplit)
+                hist_mc = 'no_multiplicity_split/kt_%i_%i/%s' % (kt1, kt2, ttsplit)
+                if args.mult_index >= 0:
+                    hist_data = 'multiplicity_%i_%i/kt_%i_%i/%s' % (mult1, mult2,
+                                                                    kt1, kt2, ttsplit)
+                    hist_mc = 'multiplicity_%i_%i/kt_%i_%i/%s' % (mult1, mult2,
+                                                                  kt1, kt2, ttsplit)
+                hist2_data = hist_data
+                hist2_mc = hist_mc
+                # hist_data = 'no_multiplicity_split/kt_%i_%i/' % (kt1, kt2)
+                # hist_mc = 'no_multiplicity_split/kt_%i_%i/' % (kt1, kt2)
             if args.style_dubna:
                 hist_data = '_kT%i-%i_Q20_N2-250_G' % (kt1, kt2)
                 hist_mc = '_kT%i-%i_Q20_N2-250' % (kt1, kt2)
@@ -644,9 +920,9 @@ def main():
             # fit_command = 'gdbserver :1234 ./fit' + args_prefix + \
             fit_command = './fit' + args_prefix + \
                 ' --hist-data ' + hist_prefix + hist_data + hist_suffix + \
-                ' --hist2-data ' + hist2_prefix + hist_data + hist2_suffix + \
+                ' --hist2-data ' + hist2_prefix + hist2_data + hist2_suffix + \
                 ' --hist-mc ' + hist_prefix + hist_mc + hist_suffix + \
-                ' --hist2-mc ' + hist2_prefix + hist_mc + hist2_suffix
+                ' --hist2-mc ' + hist2_prefix + hist2_mc + hist2_suffix
             if args.non_closure:
                 fit_command += ' --hist-truth ' + \
                                hist_prefix + hist_mc + hist_truth_suffix
@@ -662,6 +938,90 @@ def main():
 
             add_latex_table_line(colname, plotname, '%i--%i ' % (kt1, kt2), c2_index)
             add_csv_table_line(colname, plotname, '%i,%i, ' % (kt1, kt2), c2_index)
+            add_histogram(colname, plotname, c2_index)
+
+    #
+    # Fit tt bins
+    #
+    if mix_thrust and args.tt and not args.mult and not args.kt:
+        if args.mult_index >= 0:
+            mult1, mult2 = mults[args.mult_index]
+        if args.kt_index >= 0:
+            kt1, kt2 = kts[args.kt_index]
+
+        colname = plotname_prefix + '_tt' + plotname_suffix
+        if args.mult_index >= 0 and args.kt_index >= 0:
+            colname = plotname_prefix + '_tt_mult_%i_%i_kt_%i_%i' % (mult1, mult2, kt1, kt2) + \
+                      plotname_suffix
+        elif args.mult_index >= 0:
+            colname = plotname_prefix + '_tt_mult_%i_%i' % (mult1, mult2) + plotname_suffix
+        elif args.kt_index >= 0:
+            colname = plotname_prefix + '_tt_kt_%i_%i' % (kt1, kt2) + plotname_suffix
+
+        colname = colname.replace('.', '_')
+        remove_output_file(colname, 'tex', c2_index)
+        remove_output_file(colname, 'csv', c2_index)
+        remove_output_file(colname, 'root', c2_index)
+
+        for tt1, tt2 in tts:
+            ttsplit = 'tt_%0.2f_%0.2f/' % (tt1, tt2)
+            if tt2 == 1.0:
+                ttsplit = 'tt_%0.2f_%0.1f/' % (tt1, tt2)
+            ttname = '_tt_%0.2f_%0.2f' % (tt1, tt2)
+            ttname = ttname.replace('.', '_')
+            if args.style_8tev:
+                hist_data = '_g_tt_%0.2f_%0.2f' % (tt1, tt2)
+                hist_mc = '_tt_%0.2f_%0.2f' % (tt1, tt2)
+            if args.style_13tev:
+                hist_data = 'no_multiplicity_split/no_kt_split/%s' % ttsplit
+                hist_mc = 'no_multiplicity_split/no_kt_split/%s' % ttsplit
+                if args.mult_index >= 0 and args.kt_index >= 0:
+                    hist_data = 'multiplicity_%i_%i/kt_%i_%i/%s' % (mult1, mult2,
+                                                                    kt1, kt2, ttsplit)
+                    hist_mc = 'multiplicity_%i_%i/kt_%i_%i/%s' % (mult1, mult2,
+                                                                  kt1, kt2, ttsplit)
+                elif args.mult_index >= 0:
+                    hist_data = 'multiplicity_%i_%i/no_kt_split/%s' % (mult1, mult2, ttsplit)
+                    hist_mc = 'multiplicity_%i_%i/no_kt_split/%s' % (mult1, mult2, ttsplit)
+                elif args.kt_index >= 0:
+                    hist_data = 'no_multiplicity_split/kt_%i_%i/%s' % (kt1, kt2, ttsplit)
+                    hist_mc = 'no_multiplicity_split/kt_%i_%i/%s' % (kt1, kt2, ttsplit)
+                hist2_data = hist_data
+                hist2_mc = hist_mc
+                # hist_data = 'no_multiplicity_split/no_kt_split/'
+                # hist_mc = 'no_multiplicity_split/no_kt_split/'
+
+            # if args.style_dubna:
+            plotname = plotname_prefix + ttname + plotname_suffix
+            if args.mult_index >= 0 and args.kt_index >= 0:
+                plotname = plotname_prefix + ttname + \
+                           '_mult_%i_%i_kt_%i_%i' % (mult1, mult2, kt1, kt2) + \
+                           plotname_suffix
+            elif args.mult_index >= 0:
+                plotname = plotname_prefix + ttname + '_mult_%i_%i' % (mult1, mult2) + \
+                           plotname_suffix
+            elif args.kt_index >= 0:
+                plotname = plotname_prefix + ttname + '_kt_%i_%i' % (kt1, kt2) + \
+                           plotname_suffix
+            comment = comment_prefix + '%.2f #leq tt < %.2f' % (tt1, tt2)
+
+            fit_command = './fit' + args_prefix + \
+                ' --hist-data ' + hist_prefix + hist_data + hist_suffix + \
+                ' --hist2-data ' + hist2_prefix + hist2_data + hist2_suffix + \
+                ' --hist-mc ' + hist_prefix + hist_mc + hist_suffix + \
+                ' --hist2-mc ' + hist2_prefix + hist2_mc + hist2_suffix
+            if args.non_closure:
+                fit_command += ' --hist-truth ' + hist_prefix + hist_mc + hist_truth_suffix
+                fit_command += ' --hist2-truth ' + hist2_prefix + hist_mc + hist2_truth_suffix
+            fit_command += ' --plot-name ' + plotname + ' --comment "' + comment + '"'
+
+            print(fit_command)
+            return_val = system(fit_command)
+            if return_val != 0:
+                sys.exit(1)
+
+            add_latex_table_line(colname, plotname, '%.2f--%.2f ' % (tt1, tt2), c2_index)
+            add_csv_table_line(colname, plotname, '%.2f,%.2f, ' % (tt1, tt2), c2_index)
             add_histogram(colname, plotname, c2_index)
 
 

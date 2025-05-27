@@ -7,7 +7,9 @@
 
 
 TH3D* hist;
+TH3D* histLarge;
 TF3* func;
+TF3* funcInit;
 
 
 void MakeHistogram();

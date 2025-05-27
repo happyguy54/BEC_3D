@@ -1,0 +1,16 @@
+---
+uls:
+  file_data: 'input/bec_alln_W_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file2_data:
+  file_mc: 'input/bec_mc_alln_W_sc_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file2_mc:
+ohp:
+  file_data: 'input/bec_alln_W_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file2_data: 'input/bec_alln_W_opo_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file_mc: 'input/bec_mc_alln_W_sc_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file2_mc: 'input/bec_mc_alln_W_sc_opo_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+mix:
+  file_data: 'input/bec_alln_W_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file2_data: 'input/bec_alln_W_mix_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file_mc: 'input/bec_mc_alln_W_sc_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'
+  file2_mc: 'input/bec_mc_alln_W_sc_mix_trPt_100_0_Qcut_0_Qbin_20_200_0_3D_4_GeV_big_binning.root'

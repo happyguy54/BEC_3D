@@ -88,6 +88,7 @@ int GetVecIndex(const std::vector<double> &binCenterVec,
   for (size_t i = 0; i < binCenterVec.size(); ++i) {
     if (binStart <= binCenterVec.at(i) && binCenterVec.at(i) <= binStop) {
       binCenterIndex = i;
+      break;
     }
   }
 
@@ -268,6 +269,10 @@ Plotter::Plotter(const std::string& inFileName) {
   marker.emplace_back(26);
 }
 
+void Plotter::addText(TLatex* text) {
+  textVec.emplace_back(text);
+}
+
 void Plotter::draw() {
   TCanvas *canvas = new TCanvas("canvas", "Canvas", 350, 350);
   gPad->SetTopMargin(.05);
@@ -278,12 +283,12 @@ void Plotter::draw() {
   TLegend *legend;
   if (drawLegend) {
     legend = new TLegend(legendX1, legendY1, legendX2, legendY2);
-    legend->SetFillStyle(0);
-    legend->SetFillColor(0);
+    legend->SetFillStyle(1001);
+    legend->SetFillColor(kWhite);
     legend->SetShadowColor(0);
     legend->SetBorderSize(0);
     legend->SetTextFont(43);
-    legend->SetTextSize(12);
+    legend->SetTextSize(8);
   }
 
   TPaveText* atlasLabel = new TPaveText(atlasLabelX1, atlasLabelY1,
@@ -414,9 +419,17 @@ void Plotter::draw() {
     graph.at(i)->SetMaximum(histMax);
 
     if (drawLegend) {
-      legend->AddEntry(graph.at(i),
-                       graph.at(i)->GetTitle(),
-                       graphDrawParams.at(i).c_str());
+      // Copy the original drawing parameters
+      std::string modifiedDrawParams = graphDrawParams.at(i);
+      // Remove the character(s) representing error bars, e.g., 'E'
+      if (graph.size() > 3) {
+        modifiedDrawParams.erase(std::remove(modifiedDrawParams.begin(), modifiedDrawParams.end(), 'E'), modifiedDrawParams.end());
+      }
+      // Use the modified drawing parameters for the legend entry
+      legend->AddEntry(graph.at(i), graph.at(i)->GetTitle(), modifiedDrawParams.c_str());
+      // legend->AddEntry(graph.at(i),
+      //                  graph.at(i)->GetTitle(),
+      //                  graphDrawParams.at(i).c_str());
     }
     graph.at(i)->SetTitle("");
 
@@ -464,6 +477,10 @@ void Plotter::draw() {
     legend->AddEntry((TObject*)0, note.at(i).c_str(), "");
   }
 
+  for (auto text : textVec) {
+    text->Draw();
+  }
+
   if (drawLegend) legend->Draw();
   if (drawAtlasLabel) atlasLabel->Draw();
 
@@ -477,6 +494,7 @@ void Plotter::draw() {
   graph.clear();
   func.clear();
   arrow.clear();
+  textVec.clear();
 
   return;
 }
@@ -500,7 +518,7 @@ void Plotter::addHistogram(TH1D* inHist) {
   return;
 }
 
-void Plotter::addGraph(TGraphAsymmErrors* inGraph) {
+void Plotter::addGraph(TGraphAsymmErrors* inGraph, int graphIndex=1) {
   std::string copy = "_copyafsdfs";
   TGraphAsymmErrors* graphHelper = dynamic_cast<TGraphAsymmErrors*>(
       inGraph->Clone((inGraph->GetName() + copy).c_str()));
@@ -508,9 +526,12 @@ void Plotter::addGraph(TGraphAsymmErrors* inGraph) {
   std::string drawParamsHelper = "EP";
 
   int nObj = hist.size() + graph.size();
-  graphHelper->SetLineColor(color.at(nObj % color.size()));
-  graphHelper->SetMarkerColor(color.at(nObj % color.size()));
-  graphHelper->SetMarkerStyle(marker.at(nObj % marker.size()));
+  // graphHelper->SetLineColor(color.at(nObj % color.size()));
+  // graphHelper->SetMarkerColor(color.at(nObj % color.size()));
+  // graphHelper->SetMarkerStyle(marker.at(nObj % marker.size()));
+  graphHelper->SetLineColor(color.at((nObj / graphIndex) % color.size()));
+  graphHelper->SetMarkerColor(color.at((nObj / graphIndex) % color.size()));
+  graphHelper->SetMarkerStyle(marker.at(4*(nObj % graphIndex) % marker.size()));
 
   graph.emplace_back(graphHelper);
   graphDrawParams.emplace_back(drawParamsHelper);
@@ -519,12 +540,13 @@ void Plotter::addGraph(TGraphAsymmErrors* inGraph) {
   return;
 }
 
-void Plotter::addArrow(TArrow* inArrow) {
+void Plotter::addArrow(TArrow* inArrow, int graphIndex=1) {
   std::string copy = "_copyarrow";
   TArrow* arrowHelper = dynamic_cast<TArrow*>(
       inArrow->Clone((inArrow->GetName() + copy).c_str()));
   int nObj = hist.size() + arrow.size();
-  arrowHelper->SetLineColor(color.at(nObj % color.size()));
+  // arrowHelper->SetLineColor(color.at(nObj % color.size()));
+  arrowHelper->SetLineColor(color.at((nObj / graphIndex) % color.size()));
   arrow.emplace_back(arrowHelper);
   arrowLineWidth.emplace_back(2);
 

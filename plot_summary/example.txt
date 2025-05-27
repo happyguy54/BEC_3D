@@ -1,5 +1,0 @@
-./plot --r -f input/bec_fit_uls_13tev_c2_2_mult.csv input/bec_fit_ohp_c2_2_mult.csv input/bec_fit_mix_c2_2_mult.csv 
-input/bec_fit_mix_thrust_c2_2_mult.csv input/bec_fit_mix_thrust_theta_c2_2_mult.csv input/bec_fit_mix_thrust_theta_pt_c2_2_mult.csv 
-input/bec_fit_mix_thrust_rotatedPhi_c2_2_mult.csv input/bec_fit_mix_thrust_theta_rotatedPhi_c2_2_mult.csv 
-input/bec_fit_mix_thrust_theta_pt_rotatedPhi_c2_2_mult.csv 
--t "ULS;OHP;MIX;MIX + #tau;MIX + #tau + #theta;MIX + #tau + #theta + p_{T};MIX + #tau + #Phi;MIX + #tau + #theta + #Phi;MIX + #tau + #theta + p_{T} + #Phi"

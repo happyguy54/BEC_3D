@@ -5,6 +5,8 @@ Utils for do_fit
 from os import system
 from os import path
 from datetime import datetime
+import pandas as pd
+import numpy as np
 
 
 def get_filepath(plotname, extension, c2_index):
@@ -16,8 +18,10 @@ def get_filepath(plotname, extension, c2_index):
     filepath = 'output/%s_%s_%s' % (datetime.now().year,
                                     datetime.now().strftime('%h'),
                                     day_str)
-    system('mkdir -p ' + filepath + '/c2_' + str(c2_index) + '/' + extension)
-    filepath = filepath + '/c2_' + str(c2_index) + '/' + extension + '/' + plotname + '.' + extension
+    # system('mkdir -p ' + filepath + '/c2_' + str(c2_index) + '/' + extension)
+    # filepath = filepath + '/c2_' + str(c2_index) + '/' + extension + '/' + plotname + '.' + extension
+    system('mkdir -p ' + filepath + '/' + c2_index + '/' + extension)
+    filepath = filepath + '/' + c2_index + '/' + extension + '/' + plotname + '.' + extension
 
     return filepath
 
@@ -80,6 +84,32 @@ def add_csv_table_line(tablename, plotname, line_prefix, c2_index, erase=True):
     out_file = open(tablefile, 'a+')
     out_file.write(line_prefix + lines[1])
     out_file.close()
+
+def add_csv_table_line_averages(tablename, bin_start, bin_stop , c2_index):
+    """ Add line to the csv table. """
+    tablefile = get_filepath(tablename, 'csv', c2_index)
+
+    data = pd.read_csv(tablefile, sep=',')
+    # Filter the DataFrame
+    filtered_data = data[(data['bin_start'] >= bin_start) & (data['bin_stop'] <= bin_stop)]
+    # Calculate the average for columns that don't start with '#sigma'
+    average_row = filtered_data[[col for col in filtered_data.columns if not col.startswith('#sigma')]].mean()
+
+    # Calculate the mean of the square of the values for columns that start with '#sigma'
+    for col in filtered_data.columns:
+        if col.startswith('#sigma'):
+            average_row[col] = np.sqrt(np.sum(filtered_data[col]**2)/len(filtered_data))
+
+    average_row['bin_start'] = bin_start
+    average_row['bin_stop'] = bin_stop
+
+    empty_row = pd.Series(['' for _ in range(len(data.columns))], index=data.columns)
+    # Append the average row to the DataFrame
+    data = pd.concat([data, pd.DataFrame([empty_row])], ignore_index=True)
+    data = pd.concat([data, pd.DataFrame([average_row])], ignore_index=True)
+
+    # Write the DataFrame back to the file
+    data.to_csv(tablefile, sep=',', index=False)
 
 
 def add_histogram(colname, plotname, c2_index, erase=True):

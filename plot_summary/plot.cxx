@@ -21,15 +21,21 @@ int main(int argc, char** argv) {
   plotName = "";
   std::string titles = "";
   std::string comments = "";
-  max_binStop = 150;
+  max_binStop = 250;//150;
+  // max_binStart = 125;
   c2_type = "";
+  c2_number = "";
+  ref_type = "";
+  ref_num = 1;
   yMin = 0.2;
   yMax = 3.0;
   xLabel = "";
   yLabel = "";
+  textVec = {};
   logY = false;
   plotMult = false;
   plotKt = false;
+  plottt = false;
 
   InputParser input(argc, argv);
   if (input.cmdOptionExists("-h") ||
@@ -131,6 +137,9 @@ int main(int argc, char** argv) {
   if (input.cmdOptionExists("--kt")) {
     plotKt = true;
   }
+  if (input.cmdOptionExists("--tt")) {
+    plottt = true;
+  }
 
   if (paramNameVec.empty()) {
     paramNameVec.emplace_back("#lambda");
@@ -207,6 +216,7 @@ void LoadHistograms() {
   cout << "INFO: Loading histograms..." << endl;
 
   size_t titleIndex = 0;
+  std::vector<std::string> qMaxVec;
   if (yLabel.empty()) {
     for (auto paramName : paramNameVec) {
       yLabel += paramName;
@@ -216,49 +226,144 @@ void LoadHistograms() {
     yLabel.pop_back();
   }
 
+  std::vector<double> lastgraph{};
+  std::vector<double> filteredBinCenterVec{};
   std::vector<double> binCenterVecMult{6.09561, 14.4521, 24.6819, 34.7209,
                                        44.7141, 54.6933, 64.6605, 74.6382,
                                        84.6215, 94.56, 109.706, 134.392,
-                                       162.282, 211.121};
+                                       162.282, 211.121, //older values
+                                       43.48};//, 21.78}; //values added from nonunfolded multiplicity
                                      /*  6.62317, 15.4882, 25.6887, 35.7244,
                                        45.7115, 55.6937, 65.6619, 75.6394,
                                        85.6245, 95.5634, 110.685, 135.382,
                                        163.237, 211.837};*/
- /* 
+  /* 
   std::vector<double> binCenterVecMult{7.00125, 15.4882, 25.6887, 35.7244, 
                                        45.7115, 55.6937, 65.6619, 75.6394,
                                        85.6245, 95.5634, 110.685, 135.382,
                                        163.237, 211.837};//correct data
-*/
+  */
   std::vector<double> binCenterVecKt{155.117, 255., 355., 455., 553.604,
-                                     652.059, 831.163, 1194.78, 1670.};
+                                     652.059, 831.163, 1194.78, 1670., //older values
+                                     482.7}; //values added from nonunfolded multiplicity (does not matter, whole interval used)
+  std::vector<double> binEdgesVectt{0.63, 0.71, 0.78, 0.85, 0.93, 1};
+  std::vector<double> binCenterVectt;
+  for (size_t i = 0; i < binEdgesVectt.size() - 1; ++i) {
+    binCenterVectt.push_back((binEdgesVectt[i] + binEdgesVectt[i + 1]) / 2);
+  }
 
   for (auto fileName : fileVec) {
-    if (!plotMult && !plotKt) {
+    std::string qMax = "";
+    std::string rejected = "";
+    cout<<"File: "<<fileName<<endl;
+    if (!plotMult && !plotKt && !plottt) {
       if (fileName.find("mult") != std::string::npos) {
         plotMult = true;
         std::cout<< "multiplicity dependancy"<<std::endl;
       } else if (fileName.find("kt") != std::string::npos) {
         plotKt = true;
+        std::cout<< "kt dependancy"<<std::endl;
+      } else if (fileName.find("tt") != std::string::npos) {
+        plottt = true;
+        std::cout<< "tt dependancy"<<std::endl;
       } else {
         plotMult = true;
         std::cout<<"Mult nor kt found in file name!";
       }
-      if (fileName.find("c2") != std::string::npos) {
+    }
+    if (fileName.find("c2") != std::string::npos) {
+      if (c2_type.empty()) {
         c2_type += "c2_";
-        c2_type += fileName.substr(fileName.find("c2") + 3, 1);
+        // c2_type += fileName.substr(fileName.find("c2") + 3, 1);
+        size_t start = fileName.find("c2_") + 3;
+        size_t end = fileName.find_first_of("_/", start);
+        if (end != std::string::npos) {
+            c2_type += fileName.substr(start, end - start);
+            c2_number = fileName.substr(start, end - start);
+        }
+      } else {
+        c2_type += "vs";
+        size_t start = fileName.find("c2_") + 3;
+        size_t end = fileName.find_first_of("_/", start);
+        if (end != std::string::npos) {
+            c2_type += fileName.substr(start, end - start);
+            c2_number = fileName.substr(start, end - start);
+        }
+      }
+      if (fileName.find("qMax_") != std::string::npos) {
+        c2_type += "_qMax_";
+        size_t start = fileName.find("qMax_") + 5;
+        size_t end = fileName.find_first_of("_./", start);
+        if (end != std::string::npos) {
+            qMax= fileName.substr(start, end - start);
+        } else {
+            qMax= fileName.substr(start);
+        }
+        c2_type += qMax;
+      }
+      if (fileName.find("REJ") != std::string::npos) {
+        c2_type += "rej";
+        rejected = "REJ";
       }
     }
+    std::string ref_mix = "";
+    if (fileName.substr(fileName.find("tev") + 3, 3) == "mix") {
+      // Extract the substring between "tev" and "c2"
+      std::cout<<"tev mix"<<std::endl;
+      size_t start = fileName.find("tev") + 3; // Start after "tev"
+      size_t end = fileName.find("_c2");       // End before "c2"
+      if (end != std::string::npos && start < end) {
+        std::string subStr = fileName.substr(start, end - start);
+        if (subStr.find("theta") != std::string::npos) {
+          ref_mix += "#theta";
+        }
+        if (subStr.find("a_pt") != std::string::npos) {
+          ref_mix += "p_{T}";
+        }
+        if (subStr.find("rot") != std::string::npos) {
+          ref_mix += "rot";
+        }
+      }
+    }
+    if (fileName.find("fit") != std::string::npos) {
+      ref_num ++;
+      if (ref_type.empty()) {
+        ref_type = fileName.substr(fileName.find("fit") + 4, 3);
+        ref_type += ref_mix;
+        std::cout<< "ref_type: " << ref_type << std::endl;
+        ref_type_now.push_back(ref_type);
+      }
+      else if (ref_mix.empty() && ref_type_now[ref_type_now.size()-1].compare(fileName.substr(fileName.find("fit") + 4, 3)) != 0) {
+        ref_type += "vs" + fileName.substr(fileName.find("fit") + 4, 3);
+        ref_num = 1;
+        ref_type_now.push_back(fileName.substr(fileName.find("fit") + 4, 3));
+      } else if (!ref_mix.empty() && (ref_type_now[ref_type_now.size()-1].substr(3, ref_type_now[ref_type_now.size()-1].size() - 3)).compare(ref_mix) != 0) {
+        std::cout<<"ref now: "<<ref_type_now[ref_type_now.size()-1].substr(3, ref_type_now[ref_type_now.size()-1].size() - 3);
+        ref_type += "vs" + ref_mix;
+        ref_num = 1;
+        std::cout<< "ref_type: " << ref_type << std::endl;
+        ref_type_now.push_back(ref_type_now[ref_type_now.size()-1].substr(0, 3) + ref_mix);
+        // ref_type_now.push_back(ref_type_now[ref_type_now.size()-1]);
+      }
+    }
+    cout << "ref number: " <<ref_num <<endl;
+    cout << "c2_type: " << c2_type << endl;
+    cout << "c2_number: " << c2_number << endl;
 
     for (auto paramName : paramNameVec) {
       std::ifstream file(fileName);
 
       csvRow row;
       int paramCol = -1;
+      int chiCol = -1;
+      std::string chi2value = "";
       if (file >> row) {
         for (size_t j = 0; j < row.size(); ++j) {
           if (row[j].compare(paramName) == 0) {
             paramCol = j;
+          }
+          if (row[j].compare("#chi^{2}") == 0) {
+            chiCol = j;
           }
         }
       }
@@ -286,6 +391,9 @@ void LoadHistograms() {
       if (plotKt) {
         binCenterVec = binCenterVecKt;
       }
+      if (plottt) {
+        binCenterVec = binCenterVectt;
+      }
       std::vector<double> binErrVecLeft;
       std::vector<double> binErrVecRight;
       std::vector<double> valVec;
@@ -300,10 +408,26 @@ void LoadHistograms() {
       while (file >> row) {
         binStart = std::stod(row[0]);
         binStop = std::stod(row[1]);
-        if (binStop > max_binStop)
-          break;
-        if (binStop - binStart > 100) {
-          break;
+        if (plotMult) {
+          if (binStart == 2 && binStop == 250) {
+            break;
+          }
+          if (binStop > max_binStop)
+            break;
+          if (binStart > 200) {
+            continue;
+          }
+          // if (binStop - binStart > 100) {
+          //   break;
+          // }
+        } else if (plotKt) {
+          // if (binStop - binStart > 1000) {
+          //   break;
+          // }
+          if (binStart < 300 || binStart > 1500) {
+            if (binStop < 2000)
+              continue;
+          }
         }
         val = std::stod(row[paramCol]);
         if (noUncert) {
@@ -311,36 +435,61 @@ void LoadHistograms() {
         } else {
           valErr = std::stod(row[paramCol + 1]);
         }
+        if (chiCol >= 0) {
+          chi2value = row[chiCol];
+        }
+        if (chi2value == "-nan" || chi2value == "nan" || chi2value.empty()) {
+           std::cerr << "WARNING: Invalid chi2value detected." << std::endl;
+          valErr = 10.;
+          if (paramName.compare("#chi^{2}") == 0) {
+            val = 10.;
+          }
+        }
 
         binCenterIndex = GetVecIndex(binCenterVec, binStart, binStop);
-        binErrVecLeft.emplace_back(binCenterVec.at(binCenterIndex) - binStart);
-        binErrVecRight.emplace_back(binStop - binCenterVec.at(binCenterIndex));
+        if (plotMult) {
+          if (binStart == 21 && binStop == 250) {
+            binCenterIndex = binCenterVec.size() - 1;
+          }
+        } else if (plotKt) {
+          if (binStart == 100 && binStop == 2000) {
+            binCenterIndex = binCenterVec.size() - 1;
+          }
+        }
+        filteredBinCenterVec.emplace_back(binCenterVec.at(binCenterIndex));
+        binErrVecLeft.emplace_back(filteredBinCenterVec.back() - binStart);
+        binErrVecRight.emplace_back(binStop - filteredBinCenterVec.back());
         valVec.emplace_back(val);
         valErrVec.emplace_back(valErr);
       }
 
-      if (plotMult) {
+      // if (plotMult) {
+      {
         auto rightArrow = new TArrow(
-              binCenterVec.at(binCenterIndex),
+              filteredBinCenterVec.back() - binErrVecLeft.back(),
               valVec.back(),
-              binCenterVec.at(binCenterIndex) + binErrVecRight.back(),
+              filteredBinCenterVec.back() + binErrVecRight.back(),
               valVec.back(),
               0.02, ">");
+        //copy rightarrow into rightarrowhead
+        if (binCenterIndex == binCenterVec.size() - 1) {
+          rightArrow->SetLineStyle(2);
+        }
         arrowVec.emplace_back(rightArrow);
 
-        binCenterVec.emplace_back(binCenterVec.back() + binErrVecRight.back());
+        filteredBinCenterVec.emplace_back(filteredBinCenterVec.back() + binErrVecRight.back());
         valVec.emplace_back(-1000.);
         binErrVecLeft.emplace_back(0.);
         binErrVecRight.emplace_back(0.);
         valErrVec.emplace_back(0.);
 
+        binErrVecLeft.end()[-2] = 0.;
         binErrVecRight.end()[-2] = 0.;
       }
       auto graph = new TGraphAsymmErrors(valVec.size(),
-                                         &binCenterVec[0], &valVec[0],
+                                         &filteredBinCenterVec[0], &valVec[0],
                                          &binErrVecLeft[0], &binErrVecRight[0],
                                          &valErrVec[0], &valErrVec[0]);
-
       if (xLabel.empty()) {
         if (plotMult) {
           graph->GetXaxis()->SetTitle("N_{ch}");
@@ -348,16 +497,68 @@ void LoadHistograms() {
         if (plotKt) {
           graph->GetXaxis()->SetTitle("k_{T} [MeV]");
         }
+        if (plottt) {
+          graph->GetXaxis()->SetTitle("t_{T}");
+        }
       }
       graph->GetYaxis()->SetTitle(yLabel.c_str());
       if (titleIndex < titleVec.size()) {
         graph->SetTitle(titleVec.at(titleIndex).c_str());
       } else {
-        graph->SetTitle(paramName.c_str());
+        auto parname = paramName;
+        parname += "_{" + rejected + c2_number + "}";
+        std::string refTypeUpper = ref_type_now[ref_type_now.size()-1].substr(0, 3);
+        std::transform(refTypeUpper.begin(), refTypeUpper.end(), refTypeUpper.begin(), ::toupper);
+        parname += "(" + refTypeUpper + ref_mix + ": ";
+        if (chi2value == "-nan" || chi2value == "nan" || chi2value.empty()) {
+          parname += chi2value;
+        } else {
+          float chi2valueFloat = std::stof(chi2value);
+          // Convert the float back to string with 2 decimal places
+          char chi2valueStr[10];
+          snprintf(chi2valueStr, sizeof(chi2valueStr), "%.2f", chi2valueFloat);
+          parname += chi2valueStr;
+        }
+        parname += ")";
+        if (qMax.empty()) {
+          parname += "  [Q<4.2 GeV]";
+          graph->SetTitle(parname.c_str());
+        } else {
+          float qMaxGeV = std::stof(qMax) / 1000.0f;
+          // Convert the float back to string with 2 decimal places
+          char qMaxGeVStr[10];
+          snprintf(qMaxGeVStr, sizeof(qMaxGeVStr), "%.2f", qMaxGeV);
+          parname += "  [Q<"+ std::string(qMaxGeVStr)+"GeV]";
+          graph->SetTitle(parname.c_str());
+        }
+        qMaxVec.emplace_back(qMax);
       }
-
       graphVec.emplace_back(graph);
       ++titleIndex;
+    }
+  }
+  //check if all qMax are not the same, if yes detele them from parname title and create only textbox on righttop of graph
+  if (std::adjacent_find(qMaxVec.begin(), qMaxVec.end(), std::not_equal_to<>()) == qMaxVec.end()) {
+    for (auto graph : graphVec) {
+      std::string parname = graph->GetTitle();
+      size_t pos = parname.find("[Q<");
+      //now create the textbox on righttop of graph
+      auto textBox = new TLatex();
+      textBox->SetTextSize(0.02);
+      textBox->SetTextAlign(12);
+      textBox->SetTextColor(kBlack);
+      textBox->SetTextFont(42);
+      textBox->SetNDC();
+      textBox->SetX(0.7); // X position (near the right edge)
+      textBox->SetY(0.92); // Y position (near the top edge)
+      std::string qMaxtext = "[Q<" + qMaxVec[0] + " GeV]";
+      textBox->SetTitle(qMaxtext.c_str());
+      // textBox->DrawLatex(0.7, 0.9, qMaxtext.c_str());
+      textVec.emplace_back(textBox); // Store the TLatex object globally
+      if (pos != std::string::npos) {
+        parname.erase(pos, parname.length());
+        graph->SetTitle(parname.c_str());
+      }
     }
   }
 }
@@ -382,19 +583,27 @@ void Plot() {
       plotName += paramNameSlug;
     }
     plotName += "_" + c2_type;
+    plotName += "_" + ref_type;
+    if (plotKt) {
+      plotName += "_kt";
+    }
   }
 
   Plotter plotter(outFilePath + "/plot" + plotName);
   for (auto graph : graphVec) {
-    plotter.addGraph(graph);
+    plotter.addGraph(graph, paramNameVec.size() * ref_num);
+    std::cout << "paramnamesize: " << paramNameVec.size() << ", ref_num: " << ref_num << std::endl;
   }
   for (auto arrow : arrowVec) {
-    plotter.addArrow(arrow);
+    plotter.addArrow(arrow, paramNameVec.size() * ref_num);
   }
   plotter.addNotes(commentVec);
   // plotter.legendY1 = .75;
   // plotter.legendX1 = .1;
   // plotter.legendX2 = .45;
+  for (auto text : textVec) {
+    plotter.addText(text);
+  }
   plotter.legendX1 = legX[0];
   plotter.legendX2 = legX[1];
   plotter.legendY1 = legY[0];

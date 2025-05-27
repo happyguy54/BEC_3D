@@ -20,8 +20,10 @@ class C2 {
     std::vector<double> rejToOsl;
     double rej2From;
     double rej2To;
+    std::vector<double> alpha;
     bool useEps;
     bool fixC0;
+    bool with_errors;
 };
 
 
@@ -70,6 +72,38 @@ class C2_5: public C2 {
 class C2_6: public C2 {
   public:
     C2_6();
+    void setup(TF3*);
+
+    double operator() (double*, double*);
+};
+
+class C2_7: public C2 {
+  public:
+    C2_7();
+    void setup(TF3*);
+
+    double operator() (double*, double*);
+};
+
+class C2_8: public C2 {
+  public:
+    C2_8();
+    void setup(TF3*);
+
+    double operator() (double*, double*);
+};
+
+class C2_9: public C2 {
+  public:
+    C2_9();
+    void setup(TF3*);
+
+    double operator() (double*, double*);
+};
+
+class C2_10: public C2 {
+  public:
+    C2_10();
     void setup(TF3*);
 
     double operator() (double*, double*);

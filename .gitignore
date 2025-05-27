@@ -1,0 +1,11 @@
+__pycache__
+*.pyc
+fit
+venv
+*.pdf
+*.txt
+*.csv
+*.out
+.vscode/
+C2_saver.C
+*.orig

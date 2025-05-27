@@ -12,6 +12,7 @@
 #include <TGraphAsymmErrors.h>
 #include <TArrow.h>
 #include <TF1.h>
+#include <TLatex.h>
 
 
 // Input
@@ -60,6 +61,7 @@ class Plotter {
     std::vector<TGraphAsymmErrors*> graph;
     std::vector<TArrow*> arrow;
     std::vector<TF1*> func;
+    std::vector<TLatex*> textVec;
 
     std::vector<std::string> histDrawParams;
     std::vector<std::string> graphDrawParams;
@@ -100,8 +102,11 @@ class Plotter {
     void draw();
     void addHistogram(TH1D*);
     void addGraph(TGraphAsymmErrors*);
+    void addGraph(TGraphAsymmErrors*, int);
     void addArrow(TArrow*);
+    void addArrow(TArrow*, int);
     void addFunc(TF1*);
+    void addText(TLatex* text);
     void addNote(const std::string&);
     void addNotes(const std::vector<std::string>&);
     TH1D* getHist(int);

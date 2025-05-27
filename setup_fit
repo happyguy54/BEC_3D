@@ -1,0 +1,11 @@
+echo "INFO: Setting up fit"
+
+if [ -d venv ]; then
+  echo "INFO: Virtual environment already exists"
+  source venv/bin/activate
+else
+  echo "INFO: Creating virtual environment"
+  python3 -m venv venv
+  source venv/bin/activate
+  pip install pyyaml
+fi
