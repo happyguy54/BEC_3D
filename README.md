@@ -21,17 +21,17 @@ This repository contains code and scripts for fitting 3D Bose-Einstein correlati
 
 ### 1. Running a Single Fit
 
-You can run a fit using the Python script:
+You can run a fit using the Python script after making it executable with 'chmod +x do_fit.py':
 
 ```sh
-python do_fit.py [arguments]
+./do_fit.py [arguments]
 ```
 
 This script will prepare the necessary arguments and call the compiled `fit` executable (from `fit.cxx`).
 
 **Example:**
 ```sh
-python do_fit.py --file-data input/data.root --file-mc input/mc.root --hist-data myhist --hist-mc myhist_mc --q-min 0.02 --q-max 1.2 --c2-index 1
+./do_fit.py --input-yaml input/input_example.yaml --q-min 0.02 --q-max 3.02 --c2-index 4
 ```
 
 ### 2. Automating Multiple Fits
@@ -59,7 +59,7 @@ This will produce the `fit` executable.
 Both `do_fit.py` and `fit.cxx` accept a variety of arguments for specifying input files, histogram names, fit ranges, rejection regions, and fit options. See the help output for each script for details:
 
 ```sh
-python do_fit.py --help
+./do_fit.py --help
 ./fit --help
 ```
 
